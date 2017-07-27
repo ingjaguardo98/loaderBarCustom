@@ -8,7 +8,6 @@
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
-    <script src="js/main.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -34,24 +33,137 @@
      <div style="height:51px;"></div>
      <div id="containerbar">
        <div id="loaderbar"></div>
+       <my-loader-bar speed="300"></my-loader-bar>
      </div>
      <div class="container">
        <div class="starter-template">
-         <div class="photocontainer">
-           <img id="pht1" class="photo" src="img/img2.jpg" />
-           <img id="pht2" class="photo" src="img/img1.jpg" />
-           <img id="pht3" class="photo" src="img/img3.jpg" />
-           <img id="pht4" class="photo" src="img/img4.jpg" />
-           <img id="pht5" class="photo" src="img/img5.jpg" />
-           <img id="pht6" class="photo" src="img/img7.jpg" />
-           <img id="pht7" class="photo" src="img/img6.jpg" />
-           <img id="pht8" class="photo" src="img/img8.jpg" />
-         </div>
+         <my-photo-container></my-photo-container>
        </div>
      </div><!-- /.container -->
 
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
       <script src="js/bootstrap.min.js"></script>
 
+      <script>
+      let photofinish = false;
+
+      (function loaderbarShadowDOM(customElements) {
+        'use strict';
+        class loaderbarElement extends HTMLElement {
+          get Speed() {
+            return this.getAttribute('speed');
+          }
+          set Speed(val) {
+            if(val) {
+              this.setAttribute('speed', val);
+            } else {
+              this.removeAttribute('speed');
+            }
+          }
+
+          constructor() {
+            super();
+            const shadowRoot = this.attachShadow({mode: 'open'});
+            shadowRoot.innerHTML = `
+              <style>
+                #myloaderbar {
+                  background-color: red;
+                  position: absolute;
+                  width: 1%;
+                  height: 5px;
+                }
+              </style>
+              <div id="myloaderbar"></div>
+            `;
+          }
+
+          connectedCallback() {
+            let targetShadow = this.shadowRoot;
+            let mySpeed = this.Speed;
+            function moveCustomBar(width,m) {
+              setTimeout(() => {
+              targetShadow.querySelector("#myloaderbar").style.width = width + '%';
+              width++;
+              if (width>100) return true;
+              let delay;
+              if (photofinish) {
+                delay = 1;
+              } else {
+                delay = Math.floor(Math.random() * (mySpeed - 1)) + 1;
+              }
+              console.log(photofinish);
+              moveCustomBar(width,delay);
+              }, m);
+            }
+
+            moveCustomBar(1,200);
+          }
+        }
+        customElements.define('my-loader-bar', loaderbarElement);
+      })(window.customElements);
+      </script>
+
+      <script>
+      (function imagesShadowDOM(customElements) {
+        'use strict';
+        class imagesElement extends HTMLElement {
+          constructor() {
+            super();
+
+            const shadowRoot = this.attachShadow({mode: 'open'});
+            shadowRoot.innerHTML = `
+              <style>
+              .photo {
+                display: none;
+                width: 250px;
+                height: 173px;
+                padding: 10px 10px;
+              }
+              #photocontainer {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                align-content: space-around;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                height: 450px;
+              }
+
+              </style>
+              <div id="photocontainer">
+                <img id="pht1" class="photo" src="img/img2.jpg" />
+                <img id="pht2" class="photo" src="img/img1.jpg" />
+                <img id="pht3" class="photo" src="img/img3.jpg" />
+                <img id="pht4" class="photo" src="img/img4.jpg" />
+                <img id="pht5" class="photo" src="img/img5.jpg" />
+                <img id="pht6" class="photo" src="img/img7.jpg" />
+                <img id="pht7" class="photo" src="img/img6.jpg" />
+                <img id="pht8" class="photo" src="img/img8.jpg" />
+              </div>
+            `;
+          }
+
+          connectedCallback() {
+            let targetShadow = this.shadowRoot;
+
+            // ir mostrando en tiempo random las imagenes
+            //let photofinish = false;
+            function showPhoto(i,m) {
+              setTimeout(() => {
+                let namepht = "#pht" + i;
+                targetShadow.querySelector("#photocontainer").querySelector(namepht).style = "display:flex;"
+                i++;
+                if (i>8) {photofinish=true; return true;}
+                let delay = Math.floor(Math.random() * (1500 - 100)) + 100;
+                showPhoto(i,delay);
+              }, m);
+            }
+
+            showPhoto(1,1000);
+          }
+        }
+        customElements.define('my-photo-container', imagesElement);
+      })(window.customElements);
+      </script>
   </body>
 </html>
